@@ -164,12 +164,15 @@ button:hover {
 }
 
 .income-panel .chart {
-  height: 260px;
+  height: 280px;
 }
 
-.profile-panel .chart,
-.residual-panel .chart {
+.profile-panel .chart {
   height: 280px;
+}
+
+.residual-panel .chart {
+  height: 320px;
 }
 
 svg {
@@ -250,6 +253,31 @@ svg {
   stroke: #7d8f84;
   stroke-width: 2;
   stroke-dasharray: 4 3;
+}
+
+.fit-line {
+  stroke: #9aa69b;
+  stroke-dasharray: 5 4;
+}
+
+.fit-point {
+  fill: var(--accent);
+  opacity: 0.75;
+}
+
+.fit-point.dim {
+  fill: #c8d2c9;
+  opacity: 0.45;
+}
+
+.fit-point.selected {
+  fill: var(--accent-strong);
+  opacity: 0.85;
+}
+
+.fit-point.focused {
+  fill: var(--warm);
+  opacity: 0.95;
 }
 
 .tooltip {

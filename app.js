@@ -212,6 +212,7 @@ function loadData() {
 
       record.quintile = quintileMap.get(subgroup) || null;
       if (Number.isFinite(record.thriving)) {
+        record.rowId = records.length;
         records.push(record);
       }
     });
@@ -262,25 +263,16 @@ function buildCharts(records) {
     };
   });
 
-  const incomeRows = regressionRows.filter(
-    (row) => row.group === "Per Capita Income Quintiles" && row.quintile,
-  );
-
-  const globalPredictorMeans = featureDefs.map((def) =>
-    d3.mean(regressionRows, (d) => d[def.key]),
-  );
-
-  setupScatter(countryStats, incomeRows);
+  setupScatter(countryStats);
   setupResidualChart(countryStats);
-  setupProfileChart(featureDefs, globalPredictorMeans, regressionRows);
-  setupIncomeChart(incomeRows);
+  setupProfileChart();
+  setupFitChart();
 
   state.data = {
     countryStats,
     featureDefs,
-    globalPredictorMeans,
+    coefData,
     regressionRows,
-    incomeRows,
   };
 
   updateAll();
@@ -295,7 +287,7 @@ function buildCharts(records) {
   });
 }
 
-function setupScatter(countryStats, incomeRows) {
+function setupScatter(countryStats) {
   const container = d3.select("#scatter-chart").node();
   const width = container.clientWidth;
   const height = container.clientHeight;
@@ -408,7 +400,7 @@ function setupResidualChart(countryStats) {
   const container = d3.select("#residual-chart").node();
   const width = container.clientWidth;
   const height = container.clientHeight;
-  const margin = { top: 10, right: 20, bottom: 35, left: 110 };
+  const margin = { top: 8, right: 16, bottom: 48, left: 120 };
 
   const svg = d3.select("#residual").attr("viewBox", `0 0 ${width} ${height}`);
   const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
@@ -420,7 +412,7 @@ function setupResidualChart(countryStats) {
 
   g.append("text")
     .attr("x", innerWidth / 2)
-    .attr("y", innerHeight + 28)
+    .attr("y", innerHeight + 38)
     .attr("text-anchor", "middle")
     .attr("fill", "#5c6a60")
     .text("Residual (actual - predicted thriving)");
@@ -428,7 +420,7 @@ function setupResidualChart(countryStats) {
   state.residual = { svg, g, innerWidth, innerHeight };
 }
 
-function setupProfileChart(featureDefs, globalMeans, rows) {
+function setupProfileChart() {
   const container = d3.select("#profile-chart").node();
   const width = container.clientWidth;
   const height = container.clientHeight;
@@ -447,18 +439,18 @@ function setupProfileChart(featureDefs, globalMeans, rows) {
     .attr("y", innerHeight + 28)
     .attr("text-anchor", "middle")
     .attr("fill", "#5c6a60")
-    .text("Percent responding Yes (%)");
+    .text("Standardized coefficient");
 
   state.profile = { svg, g, innerWidth, innerHeight };
 }
 
-function setupIncomeChart(incomeRows) {
-  const container = d3.select("#income-chart").node();
+function setupFitChart() {
+  const container = d3.select("#fit-chart").node();
   const width = container.clientWidth;
   const height = container.clientHeight;
   const margin = { top: 10, right: 20, bottom: 35, left: 60 };
 
-  const svg = d3.select("#income").attr("viewBox", `0 0 ${width} ${height}`);
+  const svg = d3.select("#fit").attr("viewBox", `0 0 ${width} ${height}`);
   const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
@@ -471,9 +463,17 @@ function setupIncomeChart(incomeRows) {
     .attr("y", innerHeight + 28)
     .attr("text-anchor", "middle")
     .attr("fill", "#5c6a60")
-    .text("Income quintile (1 = poorest, 5 = richest)");
+    .text("Predicted thriving (%)");
 
-  state.income = { svg, g, innerWidth, innerHeight };
+  g.append("text")
+    .attr("x", -innerHeight / 2)
+    .attr("y", -44)
+    .attr("transform", "rotate(-90)")
+    .attr("text-anchor", "middle")
+    .attr("fill", "#5c6a60")
+    .text("Actual thriving (%)");
+
+  state.fit = { svg, g, innerWidth, innerHeight };
 }
 
 function updateScatter(countryStats) {
@@ -557,26 +557,17 @@ function updateResidual(countryStats) {
     );
 }
 
-function updateProfile(featureDefs, globalMeans, rows) {
+function updateProfile(coefData) {
   const chart = state.profile;
   if (!chart) return;
 
-  let filtered = rows;
-  if (state.selectedCountries.size) {
-    filtered = rows.filter((row) => state.selectedCountries.has(row.country));
-  }
-
-  const selectedMeans = featureDefs.map((def) =>
-    d3.mean(filtered, (d) => d[def.key]),
-  );
-
-  const data = featureDefs.map((def, i) => ({
-    label: def.label,
-    global: globalMeans[i],
-    selected: selectedMeans[i],
-  }));
-
-  const xScale = d3.scaleLinear().domain([0, 100]).range([0, chart.innerWidth]);
+  const data = [...coefData].sort((a, b) => a.coef - b.coef);
+  const maxAbs = d3.max(data, (d) => Math.abs(d.coef)) || 1;
+  const xScale = d3
+    .scaleLinear()
+    .domain([-maxAbs, maxAbs])
+    .range([0, chart.innerWidth])
+    .nice();
   const yScale = d3
     .scaleBand()
     .domain(data.map((d) => d.label))
@@ -588,88 +579,77 @@ function updateProfile(featureDefs, globalMeans, rows) {
   );
   chart.g.select(".y-axis").call(d3.axisLeft(yScale));
 
-  const globalBars = chart.g.selectAll("rect.global").data(data, (d) => d.label);
-  globalBars
-    .join("rect")
-    .attr("class", "profile-global global")
-    .attr("x", 0)
-    .attr("y", (d) => yScale(d.label))
-    .attr("height", yScale.bandwidth())
-    .attr("width", (d) => xScale(d.global));
+  const zeroLine = chart.g.selectAll("line.zero").data([0]);
+  zeroLine
+    .join("line")
+    .attr("class", "zero")
+    .attr("x1", xScale(0))
+    .attr("x2", xScale(0))
+    .attr("y1", 0)
+    .attr("y2", chart.innerHeight)
+    .attr("stroke", "#b7c3b8")
+    .attr("stroke-dasharray", "3 3");
 
-  const selectedBars = chart.g.selectAll("rect.selected").data(data, (d) => d.label);
-  selectedBars
+  const bars = chart.g.selectAll("rect.coef").data(data, (d) => d.label);
+  bars
     .join("rect")
-    .attr("class", "profile-selected selected")
-    .attr("x", 0)
+    .attr("class", (d) =>
+      d.coef >= 0 ? "coef bar-positive" : "coef bar-negative",
+    )
+    .attr("x", (d) => xScale(Math.min(0, d.coef)))
     .attr("y", (d) => yScale(d.label))
     .attr("height", yScale.bandwidth())
-    .attr("width", (d) => xScale(d.selected));
+    .attr("width", (d) => Math.abs(xScale(d.coef) - xScale(0)));
 }
 
-function updateIncome(incomeRows) {
-  const chart = state.income;
+function updateFit(rows) {
+  const chart = state.fit;
   if (!chart) return;
 
   let label = "All countries";
-  let selectedSet = state.selectedCountries;
-
+  let focusSet = null;
+  let selectionSet = null;
   if (state.focusedCountry) {
-    selectedSet = new Set([state.focusedCountry]);
+    focusSet = new Set([state.focusedCountry]);
     label = state.focusedCountry;
-  } else if (selectedSet.size) {
+  } else if (state.selectedCountries.size) {
+    selectionSet = state.selectedCountries;
     label = "Selected countries";
   }
 
-  const filtered = incomeRows.filter((row) => selectedSet.size ? selectedSet.has(row.country) : true);
-
-  const series = d3.range(1, 6).map((q) => ({
-    quintile: q,
-    thriving: d3.mean(filtered.filter((row) => row.quintile === q), (d) => d.thriving),
-  }));
-
-  const maxY = d3.max(series, (d) => (Number.isFinite(d.thriving) ? d.thriving : 0)) || 100;
-  const xScale = d3
-    .scaleLinear()
-    .domain([1, 5])
-    .range([0, chart.innerWidth]);
-  const yScale = d3
-    .scaleLinear()
-    .domain([0, maxY])
-    .nice()
-    .range([chart.innerHeight, 0]);
+  const maxVal = d3.max(rows, (d) => Math.max(d.thriving, d.predicted)) || 100;
+  const xScale = d3.scaleLinear().domain([0, maxVal]).range([0, chart.innerWidth]).nice();
+  const yScale = d3.scaleLinear().domain([0, maxVal]).range([chart.innerHeight, 0]).nice();
 
   chart.g.select(".x-axis").attr("transform", `translate(0,${chart.innerHeight})`).call(
-    d3.axisBottom(xScale).ticks(5).tickFormat(d3.format("d")),
+    d3.axisBottom(xScale).ticks(5),
   );
   chart.g.select(".y-axis").call(d3.axisLeft(yScale).ticks(5));
 
-  const line = d3
-    .line()
-    .defined((d) => Number.isFinite(d.thriving))
-    .x((d) => xScale(d.quintile))
-    .y((d) => yScale(d.thriving));
+  const ref = chart.g.selectAll("line.fit-line").data([0]);
+  ref
+    .join("line")
+    .attr("class", "fit-line")
+    .attr("x1", xScale(0))
+    .attr("y1", yScale(0))
+    .attr("x2", xScale(maxVal))
+    .attr("y2", yScale(maxVal));
 
-  const path = chart.g.selectAll("path.series").data([series]);
-  const lineClass = state.focusedCountry
-    ? "line-focus"
-    : state.selectedCountries.size
-      ? "line-selection"
-      : "line-all";
-  path
-    .join("path")
-    .attr("class", `series ${lineClass}`)
-    .attr("fill", "none")
-    .attr("d", line);
-
-  const circles = chart.g.selectAll("circle.point").data(series, (d) => d.quintile);
-  circles
-    .join("circle")
-    .attr("class", "point")
-    .attr("cx", (d) => xScale(d.quintile))
+  const points = chart.g.selectAll("circle.fit-point").data(rows, (d) => d.rowId);
+  points
+    .join(
+      (enter) => enter.append("circle").attr("class", "fit-point").attr("r", 3),
+      (update) => update,
+      (exit) => exit.remove(),
+    )
+    .attr("cx", (d) => xScale(d.predicted))
     .attr("cy", (d) => yScale(d.thriving))
-    .attr("r", 4)
-    .attr("fill", state.focusedCountry ? "#d07c42" : "#2f6f5f");
+    .classed(
+      "dim",
+      (d) => (focusSet || selectionSet) && !(focusSet || selectionSet).has(d.country),
+    )
+    .classed("focused", (d) => focusSet && focusSet.has(d.country))
+    .classed("selected", (d) => selectionSet && selectionSet.has(d.country));
 
   const labelText = chart.g.selectAll("text.series-label").data([label]);
   labelText
@@ -689,13 +669,12 @@ function updateSelectionNote() {
 }
 
 function updateAll() {
-  const { countryStats, featureDefs, globalPredictorMeans, regressionRows, incomeRows } =
-    state.data;
+  const { countryStats, coefData, regressionRows } = state.data;
   updateSelectionNote();
   updateScatter(countryStats);
   updateResidual(countryStats);
-  updateProfile(featureDefs, globalPredictorMeans, regressionRows);
-  updateIncome(incomeRows);
+  updateProfile(coefData);
+  updateFit(regressionRows);
 }
 
 function showTooltip(event, d) {
