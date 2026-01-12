@@ -110,8 +110,9 @@ button:hover {
   display: grid;
   grid-template-columns: 2fr 1fr;
   grid-template-areas:
-    "scatter residual"
-    "income profile";
+    "scatter fit"
+    "scatter profile"
+    "purpose vibe";
   gap: 18px;
 }
 
@@ -141,16 +142,20 @@ button:hover {
   grid-area: scatter;
 }
 
-.residual-panel {
-  grid-area: residual;
-}
-
 .income-panel {
-  grid-area: income;
+  grid-area: fit;
 }
 
 .profile-panel {
   grid-area: profile;
+}
+
+.purpose-panel {
+  grid-area: purpose;
+}
+
+.vibe-panel {
+  grid-area: vibe;
 }
 
 .chart {
@@ -160,19 +165,20 @@ button:hover {
 }
 
 .scatter-panel .chart {
-  height: 360px;
+  height: 520px;
 }
 
 .income-panel .chart {
-  height: 280px;
+  height: 260px;
 }
 
 .profile-panel .chart {
-  height: 280px;
+  height: 260px;
 }
 
-.residual-panel .chart {
-  height: 320px;
+.purpose-panel .chart,
+.vibe-panel .chart {
+  height: 240px;
 }
 
 svg {
@@ -184,8 +190,21 @@ svg {
   display: flex;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
   font-size: 0.8rem;
   color: var(--muted);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
 }
 
 .legend .bar {
@@ -303,9 +322,10 @@ svg {
     grid-template-columns: 1fr;
     grid-template-areas:
       "scatter"
-      "residual"
-      "income"
-      "profile";
+      "fit"
+      "profile"
+      "purpose"
+      "vibe";
   }
 
   .panel {
@@ -317,6 +337,6 @@ svg {
   }
 
   .scatter-panel .chart {
-    height: 320px;
+    height: 360px;
   }
 }
