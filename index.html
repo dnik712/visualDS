@@ -3,19 +3,19 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Well-being Drivers Dashboard</title>
+    <title>Thriving, Purpose, and Lifestyle Dashboard</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="page">
       <header class="page-header">
         <div>
-          <p class="eyebrow">Model Stage Dashboard</p>
-          <h1>What Drives Thriving?</h1>
+          <p class="eyebrow">Interactive Dashboard</p>
+          <h1>Thriving, Purpose, and Lifestyle</h1>
           <p class="subtitle">
-            Multivariate regression links thriving to balance, peace, help, and other
-            survey indicators. Brush countries in the scatter to see how patterns shift
-            across charts.
+            Explore how thriving relates to income, model drivers, and life priorities.
+            Brush countries in the scatter, then compare purpose and lifestyle shifts
+            across income quintiles.
           </p>
         </div>
         <div class="controls">
@@ -30,8 +30,8 @@
       <section class="grid">
         <div class="panel scatter-panel" id="scatter-panel">
           <div class="panel-header">
-            <h2>Income Gradient vs Average Thriving</h2>
-            <p>Brush to select countries. Color = balance, size = income gap.</p>
+            <h2>Income & Thriving by Country</h2>
+            <p>Brush to select countries. Color = life balance.</p>
           </div>
           <div class="chart" id="scatter-chart">
             <svg id="scatter"></svg>
@@ -52,7 +52,7 @@
         <div class="panel profile-panel" id="profile-panel">
           <div class="panel-header">
             <h2>Predictor Associations</h2>
-            <p>Standardized regression coefficients.</p>
+            <p>How much factors contribute to thriving.</p>
           </div>
           <div class="chart" id="profile-chart">
             <svg id="profile"></svg>
@@ -62,7 +62,7 @@
         <div class="panel purpose-panel" id="purpose-panel">
           <div class="panel-header">
             <h2>Main Purpose in Life</h2>
-            <p>Purpose mix across income quintiles.</p>
+            <p>Purpose mix across income quintiles (1 = poorest; 5 = richest).</p>
             <div class="filter-row">
               <label for="purpose-filter">Country filter</label>
               <select id="purpose-filter" class="filter-select country-filter"></select>
@@ -77,7 +77,7 @@
         <div class="panel vibe-panel" id="vibe-panel">
           <div class="panel-header">
             <h2>Exciting vs Calm Life</h2>
-            <p>How preferences shift by income quintile.</p>
+            <p>How preferences shift by income quintile (1=poorest; 5=richest).</p>
             <div class="filter-row">
               <label for="vibe-filter">Country filter</label>
               <select id="vibe-filter" class="filter-select country-filter"></select>

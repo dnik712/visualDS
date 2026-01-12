@@ -401,7 +401,7 @@ function setupScatter(countryStats) {
     .attr("y", innerHeight + 40)
     .attr("text-anchor", "middle")
     .attr("fill", "#5c6a60")
-    .text("Income gradient (thriving change per quintile)");
+    .text("Income effect on thriving");
 
   g.append("text")
     .attr("x", -innerHeight / 2)
@@ -453,15 +453,40 @@ function setupScatter(countryStats) {
     });
 
   const brushG = g.append("g").attr("class", "scatter-brush").call(brush);
+  const hoverOverlay = brushG.select(".overlay");
+  hoverOverlay
+    .on("mousemove", (event) => {
+      if (event.buttons === 1) {
+        hideTooltip();
+        return;
+      }
+      const [mx, my] = d3.pointer(event, g.node());
+      const nearest = d3.least(data, (d) => {
+        const dx = xScale(d.incomeSlope) - mx;
+        const dy = yScale(d.avgThriving) - my;
+        return dx * dx + dy * dy;
+      });
+      if (!nearest) {
+        hideTooltip();
+        return;
+      }
+      const dx = xScale(nearest.incomeSlope) - mx;
+      const dy = yScale(nearest.avgThriving) - my;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance <= 12) {
+        showTooltip(event, nearest);
+      } else {
+        hideTooltip();
+      }
+    })
+    .on("mouseleave", hideTooltip);
 
   const legend = d3.select("#scatter-legend");
   const colorDomain = colorScale.domain();
-  const gapDomain = sizeScale.domain();
   legend.html(
-    `<div>Balance: ${colorDomain[0].toFixed(1)}%</div>` +
+    `<div>Life balance: ${colorDomain[0].toFixed(1)}%</div>` +
       `<div class="bar"></div>` +
-      `<div>${colorDomain[1].toFixed(1)}%</div>` +
-      `<div>Gap size: ${gapDomain[0].toFixed(1)}-${gapDomain[1].toFixed(1)} pp</div>`,
+      `<div>${colorDomain[1].toFixed(1)}%</div>`,
   );
 
   state.scatter = { points, colorScale, sizeScale, brush, brushG };
@@ -542,7 +567,7 @@ function setupPurposeChart() {
     .attr("y", innerHeight + 32)
     .attr("text-anchor", "middle")
     .attr("fill", "#5c6a60")
-    .text("Share of responses (%)");
+    .text("Response share (%)");
 
   g.append("text")
     .attr("x", -innerHeight / 2)
@@ -550,7 +575,7 @@ function setupPurposeChart() {
     .attr("transform", "rotate(-90)")
     .attr("text-anchor", "middle")
     .attr("fill", "#5c6a60")
-    .text("Income quintile (1 = poorest, 5 = richest)");
+    .text("Income quintile");
 
   renderLegend("#purpose-legend", purposeLegend);
   state.purpose = { svg, g, innerWidth, innerHeight };
@@ -575,7 +600,7 @@ function setupVibeChart() {
     .attr("y", innerHeight + 32)
     .attr("text-anchor", "middle")
     .attr("fill", "#5c6a60")
-    .text("Income quintile (1 = poorest, 5 = richest)");
+    .text("Income quintile");
 
   g.append("text")
     .attr("x", -innerHeight / 2)
