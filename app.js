@@ -1,6 +1,7 @@
 const state = {
   selectedCountries: new Set(),
   focusedCountry: null,
+  countryFilter: null,
 };
 
 const targetCol = "Thriving Index";
@@ -344,6 +345,7 @@ function buildCharts(records) {
   };
   state.modelBase = baseModel;
 
+  initCountryFilters(records);
   updateAll();
 
   d3.select("#clear-selection").on("click", () => {
@@ -615,6 +617,38 @@ function getActiveSelection() {
   return null;
 }
 
+function getPurposeSelection() {
+  if (state.countryFilter) {
+    return { set: new Set([state.countryFilter]), label: state.countryFilter };
+  }
+  return getActiveSelection();
+}
+
+function initCountryFilters(records) {
+  const countries = Array.from(new Set(records.map((d) => d.country))).sort();
+  const options = ["All countries", ...countries];
+
+  const selects = d3.selectAll(".country-filter");
+  selects.selectAll("option").remove();
+  selects
+    .selectAll("option")
+    .data(options)
+    .enter()
+    .append("option")
+    .attr("value", (d) => d)
+    .text((d) => d);
+
+  const current = state.countryFilter || "All countries";
+  selects.property("value", current);
+
+  selects.on("change", (event) => {
+    const value = event.target.value;
+    state.countryFilter = value === "All countries" ? null : value;
+    d3.selectAll(".country-filter").property("value", value);
+    updateAll();
+  });
+}
+
 function buildPurposeValues(rows) {
   const values = {};
   purposeDefs.forEach((def) => {
@@ -690,7 +724,7 @@ function updatePurpose(rows) {
   const chart = state.purpose;
   if (!chart) return;
 
-  const active = getActiveSelection();
+  const active = getPurposeSelection();
   const incomeRows = rows.filter(
     (row) => row.group === "Per Capita Income Quintiles" && row.quintile,
   );
@@ -753,7 +787,7 @@ function updateVibe(rows) {
   const chart = state.vibe;
   if (!chart) return;
 
-  const active = getActiveSelection();
+  const active = getPurposeSelection();
   const incomeRows = rows.filter(
     (row) => row.group === "Per Capita Income Quintiles" && row.quintile,
   );

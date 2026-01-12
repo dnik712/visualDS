@@ -85,6 +85,29 @@ h1 {
   align-items: center;
 }
 
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-row label {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.filter-select {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-family: inherit;
+  background: #fff;
+  color: var(--ink);
+}
+
 button {
   border: none;
   background: var(--accent);
