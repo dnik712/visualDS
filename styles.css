@@ -1,0 +1,294 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap");
+
+:root {
+  --bg-start: #f6f1e6;
+  --bg-end: #e3efe4;
+  --panel: #ffffff;
+  --ink: #1d2420;
+  --muted: #5c6a60;
+  --accent: #2f6f5f;
+  --accent-strong: #1b4f44;
+  --warm: #d07c42;
+  --danger: #b34b3b;
+  --border: #d9e1d6;
+  --shadow: 0 14px 35px rgba(22, 36, 28, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+  color: var(--ink);
+  background: radial-gradient(circle at 20% 20%, #ffffff 0%, transparent 55%),
+    radial-gradient(circle at 80% 0%, #f5efe0 0%, transparent 50%),
+    linear-gradient(135deg, var(--bg-start), var(--bg-end));
+  min-height: 100vh;
+}
+
+.page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 2.2rem;
+}
+
+.subtitle {
+  margin: 0;
+  max-width: 560px;
+  color: var(--muted);
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 280px;
+}
+
+.summary-card {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  box-shadow: var(--shadow);
+}
+
+.control-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+button {
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(47, 111, 95, 0.2);
+}
+
+#selection-note {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-areas:
+    "scatter residual"
+    "income profile";
+  gap: 18px;
+}
+
+.panel {
+  background: var(--panel);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  padding: 14px 16px 12px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.panel-header h2 {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+}
+
+.panel-header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.scatter-panel {
+  grid-area: scatter;
+}
+
+.residual-panel {
+  grid-area: residual;
+}
+
+.income-panel {
+  grid-area: income;
+}
+
+.profile-panel {
+  grid-area: profile;
+}
+
+.chart {
+  position: relative;
+  width: 100%;
+  height: 300px;
+}
+
+.scatter-panel .chart {
+  height: 360px;
+}
+
+.income-panel .chart {
+  height: 260px;
+}
+
+.profile-panel .chart,
+.residual-panel .chart {
+  height: 280px;
+}
+
+svg {
+  width: 100%;
+  height: 100%;
+}
+
+.legend {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.legend .bar {
+  flex: 1;
+  height: 8px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #e8f3f8, #2c7fb8);
+  margin: 0 8px;
+}
+
+.axis text {
+  font-size: 10px;
+  fill: var(--muted);
+}
+
+.axis path,
+.axis line {
+  stroke: #c9d2c7;
+}
+
+.point {
+  stroke: #1a1a1a;
+  stroke-width: 0.4;
+  opacity: 0.85;
+}
+
+.point.selected {
+  stroke: var(--accent-strong);
+  stroke-width: 2;
+  opacity: 1;
+}
+
+.point.focused {
+  stroke: var(--warm);
+  stroke-width: 2.4;
+}
+
+.bar-negative {
+  fill: var(--danger);
+}
+
+.bar-positive {
+  fill: var(--accent);
+}
+
+.profile-global {
+  fill: #d8e0d7;
+}
+
+.profile-selected {
+  fill: var(--accent-strong);
+}
+
+.line-focus {
+  stroke: var(--warm);
+  stroke-width: 3;
+}
+
+.line-selection {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
+
+.line-all {
+  stroke: #7d8f84;
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  padding: 8px 10px;
+  background: rgba(28, 33, 30, 0.92);
+  color: #fff;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.1s ease;
+}
+
+.tooltip.show {
+  opacity: 1;
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "scatter"
+      "residual"
+      "income"
+      "profile";
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  .chart {
+    height: 280px;
+  }
+
+  .scatter-panel .chart {
+    height: 320px;
+  }
+}

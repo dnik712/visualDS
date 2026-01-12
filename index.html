@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Well-being Drivers Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">Model Stage Dashboard</p>
+          <h1>What Drives Thriving?</h1>
+          <p class="subtitle">
+            Multivariate regression links thriving to balance, peace, help, and other
+            survey indicators. Brush countries in the scatter to see how patterns shift
+            across charts.
+          </p>
+        </div>
+        <div class="controls">
+          <div id="model-summary" class="summary-card"></div>
+          <div class="control-row">
+            <button id="clear-selection" type="button">Clear selection</button>
+            <span id="selection-note">Selected: All countries</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="grid">
+        <div class="panel scatter-panel" id="scatter-panel">
+          <div class="panel-header">
+            <h2>Income Gradient vs Average Thriving</h2>
+            <p>Brush to select countries. Color = balance, size = income gap.</p>
+          </div>
+          <div class="chart" id="scatter-chart">
+            <svg id="scatter"></svg>
+          </div>
+          <div id="scatter-legend" class="legend"></div>
+        </div>
+
+        <div class="panel residual-panel" id="residual-panel">
+          <div class="panel-header">
+            <h2>Over/Under-Performers</h2>
+            <p>Residuals from the regression model.</p>
+          </div>
+          <div class="chart" id="residual-chart">
+            <svg id="residual"></svg>
+          </div>
+        </div>
+
+        <div class="panel income-panel" id="income-panel">
+          <div class="panel-header">
+            <h2>Income Quintile Profile</h2>
+            <p>Click a country to focus its line.</p>
+          </div>
+          <div class="chart" id="income-chart">
+            <svg id="income"></svg>
+          </div>
+        </div>
+
+        <div class="panel profile-panel" id="profile-panel">
+          <div class="panel-header">
+            <h2>Predictor Profile</h2>
+            <p>Selected countries vs global average.</p>
+          </div>
+          <div class="chart" id="profile-chart">
+            <svg id="profile"></svg>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div id="tooltip" class="tooltip" aria-hidden="true"></div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
