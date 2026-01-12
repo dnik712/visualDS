@@ -137,6 +137,7 @@ button:hover {
     "scatter profile"
     "purpose vibe";
   gap: 18px;
+  align-items: stretch;
 }
 
 .panel {
@@ -147,7 +148,7 @@ button:hover {
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .panel-header h2 {
@@ -184,24 +185,25 @@ button:hover {
 .chart {
   position: relative;
   width: 100%;
-  height: 300px;
+  flex: 1 1 auto;
+  min-height: 220px;
 }
 
 .scatter-panel .chart {
-  height: 520px;
+  min-height: 520px;
 }
 
 .income-panel .chart {
-  height: 260px;
+  min-height: 260px;
 }
 
 .profile-panel .chart {
-  height: 260px;
+  min-height: 260px;
 }
 
 .purpose-panel .chart,
 .vibe-panel .chart {
-  height: 240px;
+  min-height: 240px;
 }
 
 svg {
@@ -216,6 +218,7 @@ svg {
   flex-wrap: wrap;
   font-size: 0.8rem;
   color: var(--muted);
+  margin-top: 2px;
 }
 
 .legend-item {
@@ -356,10 +359,10 @@ svg {
   }
 
   .chart {
-    height: 280px;
+    min-height: 260px;
   }
 
   .scatter-panel .chart {
-    height: 360px;
+    min-height: 360px;
   }
 }

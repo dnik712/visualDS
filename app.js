@@ -471,7 +471,7 @@ function setupProfileChart() {
   const container = d3.select("#profile-chart").node();
   const width = container.clientWidth;
   const height = container.clientHeight;
-  const margin = { top: 10, right: 20, bottom: 35, left: 140 };
+  const margin = { top: 10, right: 20, bottom: 42, left: 120 };
 
   const svg = d3.select("#profile").attr("viewBox", `0 0 ${width} ${height}`);
   const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
@@ -483,7 +483,7 @@ function setupProfileChart() {
 
   g.append("text")
     .attr("x", innerWidth / 2)
-    .attr("y", innerHeight + 28)
+    .attr("y", innerHeight + 32)
     .attr("text-anchor", "middle")
     .attr("fill", "#5c6a60")
     .text("Standardized coefficient");
@@ -495,7 +495,7 @@ function setupFitChart() {
   const container = d3.select("#fit-chart").node();
   const width = container.clientWidth;
   const height = container.clientHeight;
-  const margin = { top: 10, right: 20, bottom: 35, left: 60 };
+  const margin = { top: 10, right: 20, bottom: 42, left: 60 };
 
   const svg = d3.select("#fit").attr("viewBox", `0 0 ${width} ${height}`);
   const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
@@ -507,7 +507,7 @@ function setupFitChart() {
 
   g.append("text")
     .attr("x", innerWidth / 2)
-    .attr("y", innerHeight + 28)
+    .attr("y", innerHeight + 32)
     .attr("text-anchor", "middle")
     .attr("fill", "#5c6a60")
     .text("Predicted thriving (%)");
@@ -527,7 +527,7 @@ function setupPurposeChart() {
   const container = d3.select("#purpose-chart").node();
   const width = container.clientWidth;
   const height = container.clientHeight;
-  const margin = { top: 10, right: 20, bottom: 28, left: 140 };
+  const margin = { top: 10, right: 20, bottom: 40, left: 80 };
 
   const svg = d3.select("#purpose").attr("viewBox", `0 0 ${width} ${height}`);
   const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
@@ -539,18 +539,18 @@ function setupPurposeChart() {
 
   g.append("text")
     .attr("x", innerWidth / 2)
-    .attr("y", innerHeight + 24)
-    .attr("text-anchor", "middle")
-    .attr("fill", "#5c6a60")
-    .text("Income quintile (1 = poorest, 5 = richest)");
-
-  g.append("text")
-    .attr("x", -innerHeight / 2)
-    .attr("y", -44)
-    .attr("transform", "rotate(-90)")
+    .attr("y", innerHeight + 32)
     .attr("text-anchor", "middle")
     .attr("fill", "#5c6a60")
     .text("Share of responses (%)");
+
+  g.append("text")
+    .attr("x", -innerHeight / 2)
+    .attr("y", -48)
+    .attr("transform", "rotate(-90)")
+    .attr("text-anchor", "middle")
+    .attr("fill", "#5c6a60")
+    .text("Income quintile (1 = poorest, 5 = richest)");
 
   renderLegend("#purpose-legend", purposeLegend);
   state.purpose = { svg, g, innerWidth, innerHeight };
@@ -560,7 +560,7 @@ function setupVibeChart() {
   const container = d3.select("#vibe-chart").node();
   const width = container.clientWidth;
   const height = container.clientHeight;
-  const margin = { top: 10, right: 20, bottom: 28, left: 110 };
+  const margin = { top: 10, right: 20, bottom: 40, left: 80 };
 
   const svg = d3.select("#vibe").attr("viewBox", `0 0 ${width} ${height}`);
   const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
@@ -572,7 +572,7 @@ function setupVibeChart() {
 
   g.append("text")
     .attr("x", innerWidth / 2)
-    .attr("y", innerHeight + 24)
+    .attr("y", innerHeight + 32)
     .attr("text-anchor", "middle")
     .attr("fill", "#5c6a60")
     .text("Income quintile (1 = poorest, 5 = richest)");
@@ -740,17 +740,19 @@ function updatePurpose(rows) {
   const keys = purposeLegend.map((d) => d.key);
   const stacked = d3.stack().keys(keys)(data);
 
-  const xScale = d3
+  const xScale = d3.scaleLinear().domain([0, 100]).range([0, chart.innerWidth]).nice();
+  const yScale = d3
     .scaleBand()
     .domain(data.map((d) => d.quintile))
-    .range([0, chart.innerWidth])
-    .padding(0.25);
-  const yScale = d3.scaleLinear().domain([0, 100]).range([chart.innerHeight, 0]).nice();
+    .range([chart.innerHeight, 0])
+    .padding(0.5);
 
   chart.g.select(".x-axis").attr("transform", `translate(0,${chart.innerHeight})`).call(
-    d3.axisBottom(xScale).tickFormat(d3.format("d")),
+    d3.axisBottom(xScale).ticks(5),
   );
-  chart.g.select(".y-axis").call(d3.axisLeft(yScale).ticks(5));
+  chart.g.select(".y-axis").call(
+    d3.axisLeft(yScale).tickFormat((d) => d3.format("d")(d)),
+  );
 
   const groups = chart.g.selectAll("g.stack").data(stacked, (d) => d.key);
   groups
@@ -762,15 +764,15 @@ function updatePurpose(rows) {
       d.map((segment) => ({
         key: d.key,
         quintile: segment.data.quintile,
-        y0: segment[0],
-        y1: segment[1],
+        x0: segment[0],
+        x1: segment[1],
       })),
     )
     .join("rect")
-    .attr("x", (d) => xScale(d.quintile))
-    .attr("width", xScale.bandwidth())
-    .attr("y", (d) => yScale(d.y1))
-    .attr("height", (d) => yScale(d.y0) - yScale(d.y1));
+    .attr("x", (d) => xScale(d.x0))
+    .attr("width", (d) => xScale(d.x1) - xScale(d.x0))
+    .attr("y", (d) => yScale(d.quintile))
+    .attr("height", yScale.bandwidth());
 
   const labelText = chart.g.selectAll("text.series-label").data([active ? active.label : "All countries"]);
   labelText
@@ -871,9 +873,19 @@ function updateFit(rows, model) {
     label = "Selected countries";
   }
 
+  rows.forEach((row) => {
+    const predicted = predictRow(row, model);
+    row.predictedDisplay = Number.isFinite(predicted) ? Math.max(0, predicted) : 0;
+  });
+
   const maxVal =
-    d3.max(rows, (d) => Math.max(d.thriving, predictRow(d, model))) || 100;
-  const xScale = d3.scaleLinear().domain([0, maxVal]).range([0, chart.innerWidth]).nice();
+    d3.max(rows, (d) => Math.max(d.thriving, d.predictedDisplay)) || 100;
+  const xScale = d3
+    .scaleLinear()
+    .domain([0, maxVal])
+    .range([0, chart.innerWidth])
+    .nice()
+    .clamp(true);
   const yScale = d3.scaleLinear().domain([0, maxVal]).range([chart.innerHeight, 0]).nice();
 
   chart.g.select(".x-axis").attr("transform", `translate(0,${chart.innerHeight})`).call(
@@ -897,7 +909,7 @@ function updateFit(rows, model) {
       (update) => update,
       (exit) => exit.remove(),
     )
-    .attr("cx", (d) => xScale(predictRow(d, model)))
+    .attr("cx", (d) => xScale(d.predictedDisplay))
     .attr("cy", (d) => yScale(d.thriving))
     .classed(
       "dim",
